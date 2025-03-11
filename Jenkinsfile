@@ -11,8 +11,8 @@ pipeline {
         stage('Set Up Environment') {
             steps {
                 script {
-                    sh 'python -m venv venv'
-                    sh '. venv/bin/activate && pip install -r requirements.txt'
+                    bat 'python -m venv venv'
+                    bat '. venv/bin/activate && pip install -r requirements.txt'
                 }
             }
         }
@@ -20,7 +20,7 @@ pipeline {
         stage('Run Tests') {
             steps {
                 script {
-                    sh '. venv/bin/activate && python test_todolist.py'
+                    bat '. venv/bin/activate && python test_todolist.py'
                 }
             }
         }
