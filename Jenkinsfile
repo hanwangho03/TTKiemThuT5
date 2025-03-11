@@ -11,10 +11,9 @@ pipeline {
         stage('Set Up Environment') {
             steps {
                 script {
-                    // Kiểm tra và tạo virtual environment nếu chưa có
                     bat '''
                     if not exist venv (
-                        python -m venv venv
+                        C:\\Users\\admin\\AppData\\Local\\Programs\\Python\\Python310\\python -m venv venv
                     )
                     '''
                 }
@@ -26,7 +25,7 @@ pipeline {
                 script {
                     bat '''
                     call venv\\Scripts\\activate
-                    python test_todolist.py
+                    C:\\Users\\admin\\AppData\\Local\\Programs\\Python\\Python310\\python test_todolist.py
                     '''
                 }
             }
