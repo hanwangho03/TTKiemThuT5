@@ -4,52 +4,23 @@ pipeline {
     stages {
         stage('Clone Repository') {
             steps {
-                 git branch: 'main',git 'https://github.com/hanwangho03/TTKiemThuT5.git' // 🔹 Cập nhật link repo của bạn
+                git branch: 'main', url: 'https://github.com/hanwangho03/TTKiemThuT5.git'
             }
         }
 
         stage('Set Up Environment') {
             steps {
                 script {
-                    // Cài đặt virtual environment (Linux/Mac)
-                    if (isUnix()) {
-                        sh 'python3 -m venv venv'
-                        sh 'source venv/bin/activate'
-                    } else {
-                        bat 'python -m venv venv'
-                        bat 'venv\\Scripts\\activate'
-                    }
-
-                    // Cài đặt dependencies
-                    sh 'pip install -r requirements.txt'
+                    sh 'python -m venv venv'
+                    sh '. venv/bin/activate && pip install -r requirements.txt'
                 }
             }
         }
 
-        stage('Start Flask Server') {
+        stage('Run Tests') {
             steps {
                 script {
-                    // Chạy Flask server ở background
-                    sh 'python app.py &'
-                    sleep 5 // Đợi server khởi động
-                }
-            }
-        }
-
-        stage('Run Selenium Tests') {
-            steps {
-                script {
-                    // Chạy test bằng Selenium
-                    sh 'python test_todolist.py'
-                }
-            }
-        }
-
-        stage('Cleanup') {
-            steps {
-                script {
-                    // Tắt Flask server sau khi test xong
-                    sh 'pkill -f app.py || echo "No process found"'
+                    sh '. venv/bin/activate && python test_todolist.py'
                 }
             }
         }
