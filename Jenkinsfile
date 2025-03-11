@@ -4,47 +4,54 @@ pipeline {
     stages {
         stage('Clone Repository') {
             steps {
-                git 'https://github.com/hanwangho03/TTKiemThuT5.git'  // 🛠 Đổi URL repo của bạn
+                git 'https://github.com/hanwangho03/TTKiemThuT5.git' // 🔹 Cập nhật link repo của bạn
             }
         }
 
-        stage('Setup Environment') {
+        stage('Set Up Environment') {
             steps {
-                sh 'python -m venv venv'
-                sh 'source venv/bin/activate'
-                sh 'pip install -r requirements.txt'
+                script {
+                    // Cài đặt virtual environment (Linux/Mac)
+                    if (isUnix()) {
+                        sh 'python3 -m venv venv'
+                        sh 'source venv/bin/activate'
+                    } else {
+                        bat 'python -m venv venv'
+                        bat 'venv\\Scripts\\activate'
+                    }
+
+                    // Cài đặt dependencies
+                    sh 'pip install -r requirements.txt'
+                }
             }
         }
 
         stage('Start Flask Server') {
             steps {
                 script {
-                    def flask = startFlask()
+                    // Chạy Flask server ở background
+                    sh 'python app.py &'
+                    sleep 5 // Đợi server khởi động
                 }
             }
         }
 
         stage('Run Selenium Tests') {
             steps {
-                sh 'pytest --html=report.html'  // 🛠 Chạy kiểm thử
+                script {
+                    // Chạy test bằng Selenium
+                    sh 'python test_todolist.py'
+                }
             }
         }
 
-        stage('Publish Report') {
+        stage('Cleanup') {
             steps {
-                publishHTML(target: [
-                    allowMissing: false,
-                    alwaysLinkToLastBuild: true,
-                    keepAll: true,
-                    reportDir: '.',
-                    reportFiles: 'report.html',
-                    reportName: 'Selenium Test Report'
-                ])
+                script {
+                    // Tắt Flask server sau khi test xong
+                    sh 'pkill -f app.py || echo "No process found"'
+                }
             }
         }
     }
-}
-
-def startFlask() {
-    sh 'python app.py &'
 }
