@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-Do List</title>
+</head>
+<body>
+    <h2>To-Do List</h2>
+    <form action="/add" method="post">
+        <input type="text" name="task" placeholder="Nhập công việc..." required>
+        <button type="submit">Thêm</button>
+    </form>
+    <ul>
+        {% for task in tasks %}
+            <li>
+                <span>{{ task }}</span>  
+                <a href="/delete/{{ loop.index0 }}" class="delete-button">Xóa</a>
+            </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
