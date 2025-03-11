@@ -4,7 +4,7 @@ pipeline {
     stages {
         stage('Clone Repository') {
             steps {
-                git 'https://github.com/hanwangho03/TTKiemThuT5.git' // 🔹 Cập nhật link repo của bạn
+                 git branch: 'main',git 'https://github.com/hanwangho03/TTKiemThuT5.git' // 🔹 Cập nhật link repo của bạn
             }
         }
 
