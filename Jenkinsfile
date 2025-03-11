@@ -8,12 +8,26 @@ pipeline {
             }
         }
 
-        
+        stage('Set Up Environment') {
+            steps {
+                script {
+                    // Kiểm tra và tạo virtual environment nếu chưa có
+                    bat '''
+                    if not exist venv (
+                        python -m venv venv
+                    )
+                    '''
+                }
+            }
+        }
 
         stage('Run Tests') {
             steps {
                 script {
-                    bat '. venv/bin/activate && python test_todolist.py'
+                    bat '''
+                    call venv\\Scripts\\activate
+                    python test_todolist.py
+                    '''
                 }
             }
         }
