@@ -40,8 +40,8 @@ def run_test_case(task_name, expected_in_list, test_name):
     except Exception as e:
         print(f"❌ TEST ERROR: {test_name} - {str(e)}")
 test_cases = [
-    ("Học Selenium", True, "Thêm công việc vào danh sách"),
-    ("", False, "Không thêm công việc rỗng"),
+    ("Học Selenium", True, "Them cong viec vao danh sach"),
+    ("", False, "Khong them cong viec rong"),
 ]
 
 try:
@@ -53,7 +53,7 @@ try:
     if delete_buttons:
         delete_buttons[0].click()
         time.sleep(2)
-        print("✅ TEST PASSED: Xóa công việc đầu tiên")
+        print("✅ TEST PASSED: Xoa cong viec đau tien")
     else:
         print("❌ TEST FAILED: Không tìm thấy nút xóa")
     
