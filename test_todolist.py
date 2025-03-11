@@ -1,4 +1,4 @@
-# Trần Nhật Anh Thuận - 2180604743
+# Tran Nhat Anh Thuan - 2180604743
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
@@ -8,26 +8,27 @@ import time
 import subprocess
 import os
 
-# 🔥 Bật Flask server trước khi test
+# 🔥 Bat Flask server truoc khi test
 flask_process = subprocess.Popen(["python", "app.py"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-time.sleep(3)  # Đợi server khởi động
+time.sleep(3)  # Doi server khoi dong
 
-# Cấu hình Selenium
+# Cau hinh Selenium
 service = Service(ChromeDriverManager().install())
 driver = webdriver.Chrome(service=service)
 
 def run_test_case(task_name, expected_in_list, test_name):
+    """Chay mot test case kiem tra viec them cong viec vao danh sach."""
     try:
-        driver.get("http://127.0.0.1:5000/")  # Truy cập trang
+        driver.get("http://127.0.0.1:5000/")  # Truy cap trang
         
-        # Nhập công việc vào ô input
+        # Nhap cong viec vao o input
         input_field = driver.find_element(By.NAME, "task")
         input_field.send_keys(task_name)
         input_field.send_keys(Keys.RETURN)
         
-        time.sleep(2)  # Đợi trang cập nhật
+        time.sleep(2)  # Doi trang cap nhat
         
-        # 🔥 Chỉ lấy nội dung công việc (trong thẻ <span>)
+        # 🔥 Chi lay noi dung cong viec (trong the <span>)
         tasks = driver.find_elements(By.TAG_NAME, "li")
         task_texts = [task.find_element(By.TAG_NAME, "span").text for task in tasks]  
         
@@ -39,28 +40,56 @@ def run_test_case(task_name, expected_in_list, test_name):
             print(f"❌ TEST FAILED: {test_name} - Expected in list: {expected_in_list}, got {task_texts}")
     except Exception as e:
         print(f"❌ TEST ERROR: {test_name} - {str(e)}")
+
+# ✅ Cac test case kiem tra viec them cong viec
 test_cases = [
-    ("Học Selenium", True, "Them cong viec vao danh sach"),
+    ("Hoc Selenium", True, "Them cong viec vao danh sach"),
     ("", False, "Khong them cong viec rong"),
+    ("   ", False, "Khong them cong viec chi chua khoang trang"),  # Test case fail neu backend khong kiem tra khoang trang
+    ("L" * 300, False, "Khong them cong viec qua dai"),  # Kiem tra gioi han do dai
 ]
 
 try:
+    # Chay cac test case them cong viec
     for task_name, expected_in_list, test_name in test_cases:
         run_test_case(task_name, expected_in_list, test_name)
+
+    # 🛠 Kiem tra loi xoa cong viec nhung van con trong danh sach
+    driver.get("http://127.0.0.1:5000/")
+    time.sleep(2)
     
-    # 🛠 Test xóa công việc
-    delete_buttons = driver.find_elements(By.LINK_TEXT, "Xóa")
+    tasks_before = driver.find_elements(By.TAG_NAME, "li")
+    delete_buttons = driver.find_elements(By.LINK_TEXT, "Xoa")
+
     if delete_buttons:
         delete_buttons[0].click()
-        time.sleep(2)
-        print("✅ TEST PASSED: Xoa cong viec đau tien")
+        time.sleep(2)  # Doi cap nhat
+        
+        tasks_after = driver.find_elements(By.TAG_NAME, "li")
+        if len(tasks_after) == len(tasks_before) - 1:
+            print("✅ TEST PASSED: Xoa cong viec thanh cong")
+        else:
+            print("❌ TEST FAILED: Xoa cong viec nhung no van con trong danh sach")
     else:
-        print("❌ TEST FAILED: Không tìm thấy nút xóa")
-    
+        print("❌ TEST FAILED: Khong tim thay nut xoa")
+
+    # 🛠 Kiem tra loi giao dien khong cap nhat sau khi xoa cong viec
+    delete_buttons = driver.find_elements(By.LINK_TEXT, "Xoa")
+    if delete_buttons:
+        delete_buttons[0].click()
+        time.sleep(0.5)  # Doi rat ngan de xem UI co cap nhat ngay khong
+        tasks_after_ui = driver.find_elements(By.TAG_NAME, "li")
+        if len(tasks_after_ui) == len(tasks_after) - 1:
+            print("✅ TEST PASSED: UI cap nhat sau khi xoa cong viec")
+        else:
+            print("❌ TEST FAILED: UI khong cap nhat ngay lap tuc sau khi xoa")
+    else:
+        print("❌ TEST FAILED: Khong tim thay nut xoa de kiem tra UI")
+
 finally:
     driver.quit()
-    print("🔻 Đã đóng trình duyệt")
+    print("🔻 Da dong trinh duyet")
 
-    # 🔥 Tắt Flask server sau khi test xong
+    # 🔥 Tat Flask server sau khi test xong
     flask_process.terminate()
-    print("🔻 Đã tắt Flask server")
+    print("🔻 Da tat Flask server")
