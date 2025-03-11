@@ -8,7 +8,7 @@ import time
 import subprocess
 import os
 
-# 🔥 Bat Flask server truoc khi test
+# Bat Flask server truoc khi test
 flask_process = subprocess.Popen(["python", "app.py"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 time.sleep(3)  # Doi server khoi dong
 
@@ -28,25 +28,26 @@ def run_test_case(task_name, expected_in_list, test_name):
         
         time.sleep(2)  # Doi trang cap nhat
         
-        # 🔥 Chi lay noi dung cong viec (trong the <span>)
+        # Chi lay noi dung cong viec (trong the <span>)
         tasks = driver.find_elements(By.TAG_NAME, "li")
-        task_texts = [task.find_element(By.TAG_NAME, "span").text for task in tasks]  
+        task_texts = [task.find_element(By.TAG_NAME, "span").text.strip() for task in tasks]
         
-        if expected_in_list and task_name in task_texts:
+        # So sanh voi gia tri da loai bo khoang trang
+        if expected_in_list and task_name.strip() in [t.strip() for t in task_texts]:
             print(f"✅ TEST PASSED: {test_name}")
-        elif not expected_in_list and task_name not in task_texts:
+        elif not expected_in_list and task_name.strip() not in [t.strip() for t in task_texts]:
             print(f"✅ TEST PASSED: {test_name}")
         else:
             print(f"❌ TEST FAILED: {test_name} - Expected in list: {expected_in_list}, got {task_texts}")
     except Exception as e:
         print(f"❌ TEST ERROR: {test_name} - {str(e)}")
 
-# ✅ Cac test case kiem tra viec them cong viec
+# Cac test case kiem tra viec them cong viec
 test_cases = [
     ("Hoc Selenium", True, "Them cong viec vao danh sach"),
     ("", False, "Khong them cong viec rong"),
-    ("   ", False, "Khong them cong viec chi chua khoang trang"),  # Test case fail neu backend khong kiem tra khoang trang
-    ("L" * 300, False, "Khong them cong viec qua dai"),  # Kiem tra gioi han do dai
+    ("   ", False, "Khong them cong viec chi chua khoang trang"),
+    ("L" * 300, False, "Khong them cong viec qua dai"),
 ]
 
 try:
@@ -54,13 +55,14 @@ try:
     for task_name, expected_in_list, test_name in test_cases:
         run_test_case(task_name, expected_in_list, test_name)
 
-    # 🛠 Kiem tra loi xoa cong viec nhung van con trong danh sach
+    # Kiem tra xoa cong viec nhung van con trong danh sach
     driver.get("http://127.0.0.1:5000/")
     time.sleep(2)
     
     tasks_before = driver.find_elements(By.TAG_NAME, "li")
-    delete_buttons = driver.find_elements(By.LINK_TEXT, "Xoa")
-
+    # Tim nut xoa bang XPath (tim theo chuoi 'Xoa')
+    delete_buttons = driver.find_elements(By.XPATH, '//a[contains(text(), "Xoa")]')
+    
     if delete_buttons:
         delete_buttons[0].click()
         time.sleep(2)  # Doi cap nhat
@@ -72,12 +74,12 @@ try:
             print("❌ TEST FAILED: Xoa cong viec nhung no van con trong danh sach")
     else:
         print("❌ TEST FAILED: Khong tim thay nut xoa")
-
-    # 🛠 Kiem tra loi giao dien khong cap nhat sau khi xoa cong viec
-    delete_buttons = driver.find_elements(By.LINK_TEXT, "Xoa")
+    
+    # Kiem tra UI cap nhat sau khi xoa cong viec
+    delete_buttons = driver.find_elements(By.XPATH, '//a[contains(text(), "Xoa")]')
     if delete_buttons:
         delete_buttons[0].click()
-        time.sleep(0.5)  # Doi rat ngan de xem UI co cap nhat ngay khong
+        time.sleep(0.5)  # Doi rat ngan de xem UI cap nhat ngay khong
         tasks_after_ui = driver.find_elements(By.TAG_NAME, "li")
         if len(tasks_after_ui) == len(tasks_after) - 1:
             print("✅ TEST PASSED: UI cap nhat sau khi xoa cong viec")
@@ -89,7 +91,7 @@ try:
 finally:
     driver.quit()
     print("🔻 Da dong trinh duyet")
-
-    # 🔥 Tat Flask server sau khi test xong
+    
+    # Tat Flask server sau khi test xong
     flask_process.terminate()
     print("🔻 Da tat Flask server")

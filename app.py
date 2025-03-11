@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for
 
 app = Flask(__name__)
 
-tasks = []  # Danh sách chứa các công việc
+tasks = []  # Danh sach chua cac cong viec
 
 @app.route("/")
 def index():
@@ -11,8 +11,9 @@ def index():
 @app.route("/add", methods=["POST"])
 def add_task():
     task = request.form.get("task")
-    if task:
-        tasks.append(task)
+    # Chi them cong viec neu task khong rong sau khi loai bo khoang trang
+    if task and task.strip():
+        tasks.append(task.strip())
     return redirect(url_for("index"))
 
 @app.route("/delete/<int:index>")
