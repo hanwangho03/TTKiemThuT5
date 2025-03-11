@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    environment {
+        PYTHONIOENCODING = 'utf-8'  // Ép Python sử dụng UTF-8
+    }
+
     stages {
         stage('Clone Repository') {
             steps {
@@ -25,6 +29,7 @@ pipeline {
                 script {
                     bat '''
                     call venv\\Scripts\\activate
+                    set PYTHONIOENCODING=utf-8
                     C:\\Users\\admin\\AppData\\Local\\Programs\\Python\\Python310\\python test_todolist.py
                     '''
                 }
