@@ -8,14 +8,7 @@ pipeline {
             }
         }
 
-        stage('Set Up Environment') {
-            steps {
-                script {
-                    bat 'python -m venv venv'
-                    bat '. venv/bin/activate && pip install -r requirements.txt'
-                }
-            }
-        }
+        
 
         stage('Run Tests') {
             steps {
