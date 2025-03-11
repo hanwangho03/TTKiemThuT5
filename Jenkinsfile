@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        PYTHONIOENCODING = 'utf-8'
+        PYTHONIOENCODING = 'utf-8'  // Ép Python sử dụng UTF-8
     }
 
     stages {
@@ -30,21 +30,9 @@ pipeline {
                     bat '''
                     call venv\\Scripts\\activate
                     set PYTHONIOENCODING=utf-8
-                    C:\\Users\\admin\\AppData\\Local\\Programs\\Python\\Python310\\python -m pip install pytest pytest-html
-                    C:\\Users\\admin\\AppData\\Local\\Programs\\Python\\Python310\\python -m pytest --html=report.html --self-contained-html
+                    C:\\Users\\admin\\AppData\\Local\\Programs\\Python\\Python310\\python test_todolist.py
                     '''
                 }
-            }
-        }
-
-        stage('Publish HTML Report') {
-            steps {
-                publishHTML ([
-                    reportDir: '.', 
-                    reportFiles: 'report.html', 
-                    reportName: 'Test Report',
-                    keepAll: true
-                ])
             }
         }
     }
