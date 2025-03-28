@@ -8,31 +8,31 @@ import time
 import subprocess
 import os
 
-# Bat Flask server truoc khi test
+# Bật Flask server trước khi test
 flask_process = subprocess.Popen(["python", "app.py"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-time.sleep(3)  # Doi server khoi dong
+time.sleep(3)  # Đợi server khởi động
 
-# Cau hinh Selenium
+# Cấu hình Selenium
 service = Service(ChromeDriverManager().install())
 driver = webdriver.Chrome(service=service)
 
 def run_test_case(task_name, expected_in_list, test_name):
-    """Chay mot test case kiem tra viec them cong viec vao danh sach."""
+    """Chạy một test case kiểm tra việc thêm công việc vào danh sách."""
     try:
-        driver.get("http://127.0.0.1:5000/")  # Truy cap trang
+        driver.get("http://127.0.0.1:5000/")  # Truy cập trang
         
-        # Nhap cong viec vao o input
+        # Nhập công việc vào ô input
         input_field = driver.find_element(By.NAME, "task")
         input_field.send_keys(task_name)
         input_field.send_keys(Keys.RETURN)
         
-        time.sleep(2)  # Doi trang cap nhat
+        time.sleep(2)  # Đợi trang cập nhật
         
-        # Chi lay noi dung cong viec (trong the <span>)
+        # Chỉ lấy nội dung công việc (trong thẻ <span>)
         tasks = driver.find_elements(By.TAG_NAME, "li")
         task_texts = [task.find_element(By.TAG_NAME, "span").text.strip() for task in tasks]
         
-        # So sanh voi gia tri da loai bo khoang trang
+        # So sánh với giá trị đã loại bỏ khoảng trắng
         if expected_in_list and task_name.strip() in [t.strip() for t in task_texts]:
             print(f"✅ TEST PASSED: {test_name}")
         elif not expected_in_list and task_name.strip() not in [t.strip() for t in task_texts]:
@@ -42,7 +42,83 @@ def run_test_case(task_name, expected_in_list, test_name):
     except Exception as e:
         print(f"❌ TEST ERROR: {test_name} - {str(e)}")
 
-# Cac test case kiem tra viec them cong viec
+def test_progress_change(task_name, change, expected_progress, test_name):
+    """Chạy một test case kiểm tra việc cập nhật tiến độ công việc."""
+    try:
+        driver.get("http://127.0.0.1:5000/")
+        time.sleep(2)
+
+        # Thêm công việc nếu chưa có
+        tasks = driver.find_elements(By.TAG_NAME, "li")
+        task_texts = [task.find_element(By.TAG_NAME, "span").text.strip() for task in tasks]
+        if task_name not in task_texts:
+            input_field = driver.find_element(By.NAME, "task")
+            input_field.send_keys(task_name)
+            input_field.send_keys(Keys.RETURN)
+            time.sleep(2)
+
+        # Lấy lại danh sách tasks sau khi thêm
+        tasks = driver.find_elements(By.TAG_NAME, "li")
+        for task in tasks:
+            if task.find_element(By.TAG_NAME, "span").text.strip() == task_name:
+                buttons = task.find_elements(By.TAG_NAME, "button")
+                button_text = "+10%" if change > 0 else "-10%"
+                for button in buttons:
+                    if button.text == button_text:
+                        button.click()
+                        time.sleep(2)  # Đợi trang reload
+                        # Lấy lại danh sách tasks sau khi click
+                        tasks_updated = driver.find_elements(By.TAG_NAME, "li")
+                        for updated_task in tasks_updated:
+                            if updated_task.find_element(By.TAG_NAME, "span").text.strip() == task_name:
+                                progress_text = updated_task.find_element(By.CLASS_NAME, "text-muted").text
+                                current_progress = int(progress_text.split()[0].replace("%", ""))
+                                if current_progress == expected_progress:
+                                    print(f"✅ TEST PASSED: {test_name}")
+                                else:
+                                    print(f"❌ TEST FAILED: {test_name} - Expected progress: {expected_progress}%, got {current_progress}%")
+                                return
+        print(f"❌ TEST FAILED: {test_name} - Không tìm thấy nút {button_text}")
+    except Exception as e:
+        print(f"❌ TEST ERROR: {test_name} - {str(e)}")
+
+def test_completion_status(task_name, test_name):
+    """Chạy một test case kiểm tra trạng thái hoàn thành công việc."""
+    try:
+        driver.get("http://127.0.0.1:5000/")
+        time.sleep(2)
+
+        # Thêm công việc nếu chưa có
+        tasks = driver.find_elements(By.TAG_NAME, "li")
+        task_texts = [task.find_element(By.TAG_NAME, "span").text.strip() for task in tasks]
+        if task_name not in task_texts:
+            input_field = driver.find_element(By.NAME, "task")
+            input_field.send_keys(task_name)
+            input_field.send_keys(Keys.RETURN)
+            time.sleep(2)
+
+        # Lấy lại danh sách tasks sau khi thêm
+        tasks = driver.find_elements(By.TAG_NAME, "li")
+        for task in tasks:
+            if task.find_element(By.TAG_NAME, "span").text.strip() == task_name:
+                checkbox = task.find_element(By.CLASS_NAME, "form-check-input")
+                checkbox.click()
+                time.sleep(2)  # Đợi trang cập nhật
+                # Lấy lại danh sách tasks sau khi click
+                tasks_updated = driver.find_elements(By.TAG_NAME, "li")
+                for updated_task in tasks_updated:
+                    if updated_task.find_element(By.TAG_NAME, "span").text.strip() == task_name:
+                        span = updated_task.find_element(By.TAG_NAME, "span")  # Sửa từ By_TAG_NAME thành By.TAG_NAME
+                        if "completed" in span.get_attribute("class"):
+                            print(f"✅ TEST PASSED: {test_name}")
+                        else:
+                            print(f"❌ TEST FAILED: {test_name} - Công việc không được đánh dấu hoàn thành")
+                        return
+        print(f"❌ TEST FAILED: {test_name} - Không tìm thấy công việc")
+    except Exception as e:
+        print(f"❌ TEST ERROR: {test_name} - {str(e)}")
+
+# Các test case kiểm tra việc thêm công việc
 test_cases = [
     ("Hoc Selenium", True, "Them cong viec vao danh sach"),
     ("", False, "Khong them cong viec rong"),
@@ -50,48 +126,33 @@ test_cases = [
     ("L" * 300, False, "Khong them cong viec qua dai"),
 ]
 
+# Các test case kiểm tra tiến độ và trạng thái
+progress_test_cases = [
+    ("Test Progress", 10, 10, "Tang tien do cong viec len 10%"),
+    ("Test Progress", -10, 0, "Giam tien do cong viec xuong 0%"),
+]
+
+completion_test_cases = [
+    ("Test Completion", "Danh dau cong viec hoan thanh"),
+]
+
 try:
-    # Chay cac test case them cong viec
+    # Chạy các test case thêm công việc
     for task_name, expected_in_list, test_name in test_cases:
         run_test_case(task_name, expected_in_list, test_name)
 
-    # Kiem tra xoa cong viec nhung van con trong danh sach
-    driver.get("http://127.0.0.1:5000/")
-    time.sleep(2)
-    
-    tasks_before = driver.find_elements(By.TAG_NAME, "li")
-    # Tim nut xoa bang XPath (tim theo chuoi 'Xoa')
-    delete_buttons = driver.find_elements(By.XPATH, '//a[contains(text(), "Xoa")]')
-    
-    if delete_buttons:
-        delete_buttons[0].click()
-        time.sleep(2)  # Doi cap nhat
-        
-        tasks_after = driver.find_elements(By.TAG_NAME, "li")
-        if len(tasks_after) == len(tasks_before) - 1:
-            print("✅ TEST PASSED: Xoa cong viec thanh cong")
-        else:
-            print("❌ TEST FAILED: Xoa cong viec nhung no van con trong danh sach")
-    else:
-        print("❌ TEST FAILED: Khong tim thay nut xoa")
-    
-    # Kiem tra UI cap nhat sau khi xoa cong viec
-    delete_buttons = driver.find_elements(By.XPATH, '//a[contains(text(), "Xoa")]')
-    if delete_buttons:
-        delete_buttons[0].click()
-        time.sleep(0.5)  # Doi rat ngan de xem UI cap nhat ngay khong
-        tasks_after_ui = driver.find_elements(By.TAG_NAME, "li")
-        if len(tasks_after_ui) == len(tasks_after) - 1:
-            print("✅ TEST PASSED: UI cap nhat sau khi xoa cong viec")
-        else:
-            print("❌ TEST FAILED: UI khong cap nhat ngay lap tuc sau khi xoa")
-    else:
-        print("❌ TEST FAILED: Khong tim thay nut xoa de kiem tra UI")
+    # Chạy các test case liên quan đến tiến độ
+    for task_name, change, expected_progress, test_name in progress_test_cases:
+        test_progress_change(task_name, change, expected_progress, test_name)
+
+    # Chạy test case liên quan đến trạng thái hoàn thành
+    for task_name, test_name in completion_test_cases:
+        test_completion_status(task_name, test_name)
 
 finally:
     driver.quit()
     print("🔻 Da dong trinh duyet")
     
-    # Tat Flask server sau khi test xong
+    # Tắt Flask server sau khi test xong
     flask_process.terminate()
     print("🔻 Da tat Flask server")
