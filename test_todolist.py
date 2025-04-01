@@ -108,12 +108,51 @@ def test_completion_status(task_name, test_name):
                 tasks_updated = driver.find_elements(By.TAG_NAME, "li")
                 for updated_task in tasks_updated:
                     if updated_task.find_element(By.TAG_NAME, "span").text.strip() == task_name:
-                        span = updated_task.find_element(By.TAG_NAME, "span")  # Sửa từ By_TAG_NAME thành By.TAG_NAME
+                        span = updated_task.find_element(By.TAG_NAME, "span")
                         if "completed" in span.get_attribute("class"):
                             print(f"✅ TEST PASSED: {test_name}")
                         else:
                             print(f"❌ TEST FAILED: {test_name} - Công việc không được đánh dấu hoàn thành")
                         return
+        print(f"❌ TEST FAILED: {test_name} - Không tìm thấy công việc")
+    except Exception as e:
+        print(f"❌ TEST ERROR: {test_name} - {str(e)}")
+
+def test_delete_task(task_name, test_name):
+    """Chạy một test case kiểm tra việc xóa công việc khỏi danh sách."""
+    try:
+        driver.get("http://127.0.0.1:5000/")
+        time.sleep(2)
+
+        # Thêm công việc nếu chưa có
+        tasks = driver.find_elements(By.TAG_NAME, "li")
+        task_texts = [task.find_element(By.TAG_NAME, "span").text.strip() for task in tasks]
+        if task_name not in task_texts:
+            input_field = driver.find_element(By.NAME, "task")
+            input_field.send_keys(task_name)
+            input_field.send_keys(Keys.RETURN)
+            time.sleep(2)
+
+        # Lấy lại danh sách tasks sau khi thêm
+        tasks = driver.find_elements(By.TAG_NAME, "li")
+        for task in tasks:
+            if task.find_element(By.TAG_NAME, "span").text.strip() == task_name:
+                # Tìm thẻ <a> có nội dung là "Xóa"
+                delete_links = task.find_elements(By.TAG_NAME, "a")
+                for link in delete_links:
+                    if link.text.strip() == "Xóa":
+                        link.click()
+                        time.sleep(2)  # Đợi trang cập nhật sau khi xóa
+                        # Lấy lại danh sách tasks sau khi xóa
+                        tasks_updated = driver.find_elements(By.TAG_NAME, "li")
+                        task_texts_updated = [task.find_element(By.TAG_NAME, "span").text.strip() for task in tasks_updated]
+                        if task_name not in task_texts_updated:
+                            print(f"✅ TEST PASSED: {test_name}")
+                        else:
+                            print(f"❌ TEST FAILED: {test_name} - Công việc vẫn còn trong danh sách: {task_texts_updated}")
+                        return
+                print(f"❌ TEST FAILED: {test_name} - Không tìm thấy nút Xóa")
+                return
         print(f"❌ TEST FAILED: {test_name} - Không tìm thấy công việc")
     except Exception as e:
         print(f"❌ TEST ERROR: {test_name} - {str(e)}")
@@ -131,9 +170,15 @@ progress_test_cases = [
     ("Test Progress", 10, 10, "Tang tien do cong viec len 10%"),
     ("Test Progress", -10, 0, "Giam tien do cong viec xuong 0%"),
 ]
+
 # Danh Dau cong viec Da hoan thanh
 completion_test_cases = [
     ("Test Completion", "Danh dau cong viec hoan thanh"),
+]
+
+# Test case kiểm tra xóa công việc
+delete_test_cases = [
+    ("Test Delete", "Xoa cong viec khoi danh sach"),
 ]
 
 try:
@@ -145,9 +190,13 @@ try:
     for task_name, change, expected_progress, test_name in progress_test_cases:
         test_progress_change(task_name, change, expected_progress, test_name)
 
-    # Chạy test case liên quan đến trạng thái hoàn thành
+    # # Chạy test case liên quan đến trạng thái hoàn thành
     # for task_name, test_name in completion_test_cases:
     #     test_completion_status(task_name, test_name)
+
+    # Chạy test case liên quan đến xóa công việc
+    for task_name, test_name in delete_test_cases:
+        test_delete_task(task_name, test_name)
 
 finally:
     driver.quit()
