@@ -127,10 +127,10 @@ test_cases = [
 ]
 
 # # Các test case kiểm tra tiến độ và trạng thái
-# progress_test_cases = [
-#     ("Test Progress", 10, 10, "Tang tien do cong viec len 10%"),
-#     ("Test Progress", -10, 0, "Giam tien do cong viec xuong 0%"),
-# ]
+progress_test_cases = [
+    ("Test Progress", 10, 10, "Tang tien do cong viec len 10%"),
+    ("Test Progress", -10, 0, "Giam tien do cong viec xuong 0%"),
+]
 
 # # Danh Dau cong viec Da hoan thanh
 # completion_test_cases = [
