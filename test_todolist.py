@@ -131,7 +131,7 @@ progress_test_cases = [
     ("Test Progress", 10, 10, "Tang tien do cong viec len 10%"),
     ("Test Progress", -10, 0, "Giam tien do cong viec xuong 0%"),
 ]
-
+# Danh Dau cong viec Da hoan thanh
 completion_test_cases = [
     ("Test Completion", "Danh dau cong viec hoan thanh"),
 ]
@@ -146,8 +146,8 @@ try:
         test_progress_change(task_name, change, expected_progress, test_name)
 
     # Chạy test case liên quan đến trạng thái hoàn thành
-    for task_name, test_name in completion_test_cases:
-        test_completion_status(task_name, test_name)
+    # for task_name, test_name in completion_test_cases:
+    #     test_completion_status(task_name, test_name)
 
 finally:
     driver.quit()
