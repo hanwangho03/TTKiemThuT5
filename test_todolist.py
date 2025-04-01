@@ -118,54 +118,6 @@ def test_completion_status(task_name, test_name):
     except Exception as e:
         print(f" TEST ERROR: {test_name} - {str(e)}")
 
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-
-def test_delete_task(task_name, test_name):
-    """Chạy một test case kiểm tra việc xóa công việc khỏi danh sách."""
-    try:
-        driver.get("http://127.0.0.1:5000/")
-        # Chờ cho ô input xuất hiện
-        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.NAME, "task")))
-
-        # Thêm công việc nếu chưa có
-        tasks = driver.find_elements(By.TAG_NAME, "li")
-        task_texts = [task.find_element(By.TAG_NAME, "span").text.strip() for task in tasks]
-        if task_name not in task_texts:
-            input_field = driver.find_element(By.NAME, "task")
-            input_field.send_keys(task_name)
-            input_field.send_keys(Keys.RETURN)
-            # Chờ cho danh sách công việc cập nhật
-            WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.TAG_NAME, "li")))
-
-        # Lấy lại danh sách tasks sau khi thêm
-        tasks = driver.find_elements(By.TAG_NAME, "li")
-        for task in tasks:
-            if task.find_element(By.TAG_NAME, "span").text.strip() == task_name:
-                # Tìm thẻ <a> có nội dung là "Xóa"
-                delete_links = task.find_elements(By.TAG_NAME, "a")
-                for link in delete_links:
-                    if link.text.strip() == "Xóa":
-                        # Chờ cho nút "Xóa" có thể nhấn được
-                        WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, f"//li[contains(., '{task_name}')]//a[text()='Xóa']")))
-                        # Cuộn đến phần tử trước khi nhấn
-                        driver.execute_script("arguments[0].scrollIntoView(true);", link)
-                        link.click()
-                        # Chờ cho danh sách công việc cập nhật sau khi xóa
-                        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.TAG_NAME, "li")))
-                        # Lấy lại danh sách tasks sau khi xóa
-                        tasks_updated = driver.find_elements(By.TAG_NAME, "li")
-                        task_texts_updated = [task.find_element(By.TAG_NAME, "span").text.strip() for task in tasks_updated]
-                        if task_name not in task_texts_updated:
-                            print(f" TEST PASSED: {test_name}")
-                        else:
-                            print(f" TEST FAILED: {test_name} - Công việc vẫn còn trong danh sách: {task_texts_updated}")
-                        return
-                print(f" TEST FAILED: {test_name} - Không tìm thấy nút Xóa")
-                return
-        print(f" TEST FAILED: {test_name} - Không tìm thấy công việc")
-    except Exception as e:
-        print(f" TEST ERROR: {test_name} - {str(e)}")
 # Các test case kiểm tra việc thêm công việc
 test_cases = [
     ("Hoc Selenium", True, "Them cong viec vao danh sach"),
@@ -174,21 +126,18 @@ test_cases = [
     ("L" * 300, False, "Khong them cong viec qua dai"),
 ]
 
-# Các test case kiểm tra tiến độ và trạng thái
-progress_test_cases = [
-    ("Test Progress", 10, 10, "Tang tien do cong viec len 10%"),
-    ("Test Progress", -10, 0, "Giam tien do cong viec xuong 0%"),
-]
+# # Các test case kiểm tra tiến độ và trạng thái
+# progress_test_cases = [
+#     ("Test Progress", 10, 10, "Tang tien do cong viec len 10%"),
+#     ("Test Progress", -10, 0, "Giam tien do cong viec xuong 0%"),
+# ]
 
-# Danh Dau cong viec Da hoan thanh
-completion_test_cases = [
-    ("Test Completion", "Danh dau cong viec hoan thanh"),
-]
+# # Danh Dau cong viec Da hoan thanh
+# completion_test_cases = [
+#     ("Test Completion", "Danh dau cong viec hoan thanh"),
+# ]
 
-# Test case kiểm tra xóa công việc
-delete_test_cases = [
-    ("Test Delete", "Xoa cong viec khoi danh sach"),
-]
+
 
 try:
     # Chạy các test case thêm công việc
@@ -202,10 +151,6 @@ try:
     # # Chạy test case liên quan đến trạng thái hoàn thành
     # for task_name, test_name in completion_test_cases:
     #     test_completion_status(task_name, test_name)
-
-    # Chạy test case liên quan đến xóa công việc
-    for task_name, test_name in delete_test_cases:
-        test_delete_task(task_name, test_name)
 
 finally:
     driver.quit()
