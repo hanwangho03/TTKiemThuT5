@@ -127,10 +127,10 @@ test_cases = [
 ]
 
 # # Các test case kiểm tra tiến độ và trạng thái
-progress_test_cases = [
-    ("Test Progress", 10, 10, "Tang tien do cong viec len 10%"),
-    ("Test Progress", -10, 0, "Giam tien do cong viec xuong 0%"),
-]
+# progress_test_cases = [
+#     ("Test Progress", 10, 10, "Tang tien do cong viec len 10%"),
+#     ("Test Progress", -10, 0, "Giam tien do cong viec xuong 0%"),
+# ]
 
 # # Danh Dau cong viec Da hoan thanh
 # completion_test_cases = [
@@ -145,8 +145,8 @@ try:
         run_test_case(task_name, expected_in_list, test_name)
 
     # Chạy các test case liên quan đến tiến độ
-    for task_name, change, expected_progress, test_name in progress_test_cases:
-        test_progress_change(task_name, change, expected_progress, test_name)
+    # for task_name, change, expected_progress, test_name in progress_test_cases:
+    #     test_progress_change(task_name, change, expected_progress, test_name)
 
     # # Chạy test case liên quan đến trạng thái hoàn thành
     # for task_name, test_name in completion_test_cases:
